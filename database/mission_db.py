@@ -1,29 +1,26 @@
-import db_connection
-from validations import Checkmissionsdata, risk_level
+from database.db_connection import DBconnection
+from database.validations import Checkmissionsdata, check_risk_level
 
 
 class MissionDB():
     def __init__(self):
-        self.mission = db_connection.DBconnection()
+        self.mission = DBconnection()
 
     def create_mission(self, data :Checkmissionsdata):
         try:
             cursor = self.mission.get_connection().cursor(dictionary=True)
-            level = risk_level(data.difficulty, data.importance)
+            level = check_risk_level(data.difficulty, data.importance)
             cursor.execute("""
-                    insert intu missions (
+                    insert into missions (
                         title, description, location, difficulty,
                         importance, status, risk_level, assigned_agent_id)
-                    values (%s, %s, %s, %s, %s, %s, %s)
+                    values (%s, %s, %s, %s, %s, %s, %s, %s)
                     """, (data.title, data.description, data.location, data.difficulty, data.importance, "NEW", level, None)
                     )
             cursor._connection.commit()
-            mission = self.get_all_missions()
-            return mission[-1]
+            cursor.close()
         except Exception as e:
-            return f"the error is: {e}"
-        finally:
-            cursor.close() 
+            raise Exception(f"the error is: {e}")
 
     def get_all_missions(self):
         try:
@@ -34,7 +31,7 @@ class MissionDB():
             mission = cursor.fetchall()
             return mission
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()       
 
@@ -46,10 +43,10 @@ class MissionDB():
                         where id = %s
                     """, (id,)
                     )
-            mission = cursor.fetchall()
+            mission = cursor.fetchone()
             return mission
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close() 
 
@@ -57,7 +54,7 @@ class MissionDB():
         try:
             cursor = self.mission.get_connection().cursor(dictionary=True)
             cursor.execute("""
-                    update mission set 
+                    update missions set 
                         assigned_agent_id = %s
                     where id = %s
                     """, (agent_id, mission_id)
@@ -65,7 +62,7 @@ class MissionDB():
             cursor._connection.commit()
             return True
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -73,7 +70,7 @@ class MissionDB():
         try:
             cursor = self.mission.get_connection().cursor(dictionary=True)
             cursor.execute("""
-                    update mission set
+                    update missions set
                         status = %s
                     where id = %s
                     """, (status, id)
@@ -81,7 +78,7 @@ class MissionDB():
             cursor._connection.commit()
             return True
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -97,7 +94,7 @@ class MissionDB():
             open_mission_by_agent = cursor.fetchall()
             return open_mission_by_agent
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -105,12 +102,12 @@ class MissionDB():
         try:
             cursor = self.mission.get_connection().cursor()
             cursor.execute("""
-                    select count(*) from mission
+                    select count(*) from missions
                     """)
             count = cursor.fetchone()
             return count
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -118,14 +115,14 @@ class MissionDB():
         try:
             cursor = self.mission.get_connection().cursor()
             cursor.execute("""
-                    select count(*) from mission
+                    select count(*) from missions
                         where status = %s
                     """, (status,)
                     )
             count = cursor.fetchone()
             return count
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -139,7 +136,7 @@ class MissionDB():
             open_mission = cursor.fetchone()
             return open_mission
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -147,20 +144,20 @@ class MissionDB():
         try:
             cursor = self.mission.get_connection().cursor()
             cursor.execute("""
-                    select count(*) from mission
+                    select count(*) from missions
                         where risk_level = %s
                     """, ("CRITICAL",)
                     )
             count = cursor.fetchone()
             return count
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
     def get_top_agent(self):
         try:
-            cursor = self.mission.get_connection().cursor()
+            cursor = self.mission.get_connection().cursor(dictionary=True)
             cursor.execute("""
                     select * from agents
                         order by completed_missions desc
@@ -169,6 +166,18 @@ class MissionDB():
             top_agent = cursor.fetchone()
             return top_agent
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
+
+    def check_mission_exists(self, mission_id: int):
+        cursor = self.mission.get_connection().cursor(dictionary=True)
+        cursor.execute("""
+                select id from missions 
+                where id = %s
+                """, (mission_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        if result:
+            return True
+        return False

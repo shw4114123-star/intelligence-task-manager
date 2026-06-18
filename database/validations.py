@@ -3,7 +3,6 @@ from typing import Literal
 
 
 class Checkagentdata(BaseModel):
-    id : int
     name : str
     specialty : str
     is_active : bool
@@ -13,7 +12,6 @@ class Checkagentdata(BaseModel):
 
 
 class Checkmissionsdata(BaseModel):
-    id : int
     title : str
     description : str
     location : str
@@ -23,13 +21,14 @@ class Checkmissionsdata(BaseModel):
     assigned_agent_id : int | None
 
 
-def risk_level(difficulty, importance):
+def check_risk_level(difficulty, importance):
     result = difficulty * 2 + importance
-    if 0 < result < 9:
+    if result <= 9:
         return "LOW"
-    elif 10 <= result <= 17:
+    elif result <= 17:
         return "MEDIUM"
-    elif 18 <= result <= 24:
+    elif result <= 24:
         return "HIGH"
-    elif result >= 25:
+    else:
         return "CRITICAL"
+    

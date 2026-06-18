@@ -1,10 +1,10 @@
-import db_connection
-from validations import Checkagentdata
+from database.db_connection import DBconnection
+from database.validations import Checkagentdata
 
 
 class AgentDB():
     def __init__(self):
-        self.agent = db_connection.DBconnection()
+        self.agent = DBconnection()
 
     def create_agent(self, data: Checkagentdata):
         try:
@@ -15,13 +15,10 @@ class AgentDB():
                             failed_missions, agent_rank) values (%s, %s, %s, %s, %s, %s)
                     """, (data.name, data.specialty, True, 0, 0, "Junior")
                     )
-            agent = self.get_all_agents()
             cursor._connection.commit()
-            return agent[-1]
-        except Exception as e:
-            return f"the error is: {e}"
-        finally:
             cursor.close()
+        except Exception as e:
+            raise Exception(f"the error is: {e}")
 
     def get_all_agents(self):
         try:
@@ -32,7 +29,7 @@ class AgentDB():
             all = cursor.fetchall()
             return all
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -47,7 +44,7 @@ class AgentDB():
             agent = cursor.fetchone()
             return agent
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
         
@@ -70,7 +67,7 @@ class AgentDB():
             cursor._connection.commit()
             return True
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -86,7 +83,7 @@ class AgentDB():
             cursor._connection.commit()
             return True
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -102,7 +99,7 @@ class AgentDB():
             cursor._connection.commit()
             return True
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -118,7 +115,7 @@ class AgentDB():
             cursor._connection.commit()
             return True
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
 
@@ -135,7 +132,7 @@ class AgentDB():
             return {"completed" : a[0], "failed" : a[1], 
                     "total": total, "success_rate" : success_rate}
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
     
@@ -149,6 +146,18 @@ class AgentDB():
             a = cursor.fetchone()
             return a[0]
         except Exception as e:
-            return f"the error is: {e}"
+            raise Exception(f"the error is: {e}")
         finally:
             cursor.close()
+
+    def check_agent_exists(self, agent_id: int):
+        cursor = self.agent.get_connection().cursor(dictionary=True)
+        cursor.execute("""
+                select id from agents 
+                where id = %s
+                """, (agent_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        if result:
+            return True
+        return False
