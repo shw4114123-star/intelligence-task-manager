@@ -7,7 +7,7 @@ class DBconnection:
             "port" : 3306,
             "user" : "root",
             "password" : "1234",
-            "database" : "Intelligence_db"
+            "database" : None
         }
         self._connection = None
 

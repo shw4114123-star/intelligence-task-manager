@@ -9,9 +9,13 @@ import uvicorn
 app = FastAPI()
 connection = DBconnection()
 
-@app.post("/")
+@app.post("/database")
 def create_database_and_tables():
     connection.create_database()
+
+
+@app.post("/table")
+def dreate_table():
     connection.create_tables()
 
 app.include_router(agent_router)
